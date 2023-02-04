@@ -1,14 +1,16 @@
 package com.sarwar.mvvmexample.data.db
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
-import com.sarwar.mvvmexample.data.db.dao.ContactDao
-import com.sarwar.mvvmexample.data.db.entity.Contact
+import com.sarwar.mvvmexample.data.db.dao.ImagesDao
+import com.sarwar.mvvmexample.data.db.entity.ImageEntity
 
 
-@Database(entities = [Contact::class], version = 2)
+@Database(entities = [ImageEntity::class],
+    version = 2)
 abstract class MasterDatabase: RoomDatabase() {
 
     companion object{
@@ -29,7 +31,7 @@ abstract class MasterDatabase: RoomDatabase() {
         }
     }
 
-    abstract fun getContactDao(): ContactDao
+    abstract fun getImagesDao(): ImagesDao
 
     //Singleton - pattern
 }

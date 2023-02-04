@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.sarwar.mvvmexample.data.network.model.UnsplashApiResponse
 import com.sarwar.mvvmexample.repo.GalleryPhotosRepository
 import com.sarwar.mvvmexample.utils.Resource
+import com.sarwar.mvvmexample.utils.Status
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +24,7 @@ class GalleryFragmentViewModel @Inject constructor(
     val searchKeyLiveData : LiveData<String> get() =  _searchKeyLiveData
 
     fun searchImage(keyword:String) {
+        _imagesLiveData.postValue(Resource(Status.LOADING,null,""))
         viewModelScope.launch {
            val resource =  repository.searchImage(keyword,0,100)
             _imagesLiveData.postValue(resource)

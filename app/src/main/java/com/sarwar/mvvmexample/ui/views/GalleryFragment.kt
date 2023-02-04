@@ -1,11 +1,18 @@
 package com.sarwar.mvvmexample.ui.views
 
+import android.content.IntentFilter
+import android.media.Image
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.runtime.key
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -18,6 +25,8 @@ import com.sarwar.mvvmexample.data.network.model.ImageModel
 import com.sarwar.mvvmexample.data.network.model.UnsplashApiResponse
 import com.sarwar.mvvmexample.databinding.FragmentGalleryBinding
 import com.sarwar.mvvmexample.ui.adapter.PhotoAdapter
+import com.sarwar.mvvmexample.utils.NetworkBroadcastReceiver
+import com.sarwar.mvvmexample.utils.NetworkManager
 import com.sarwar.mvvmexample.utils.Status
 import com.sarwar.mvvmexample.viewmodel.GalleryFragmentViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,6 +37,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -36,6 +46,7 @@ class GalleryFragment : Fragment() {
     lateinit var binding: FragmentGalleryBinding
     private var photos = ArrayList<ImageModel>()
     private var searchKey: String = ""
+    private lateinit var networkBroadcastReceiver: NetworkBroadcastReceiver
 
     private val viewModel: GalleryFragmentViewModel by viewModels()
 
@@ -56,13 +67,30 @@ class GalleryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         prepareRecyclerView()
+
         setObservers()
 
-        viewModel.searchImage("cat")
+        searchImage("cat")
 
         binding.btnSearch.setOnClickListener {
-            viewModel.searchImage(binding.etSearch.text.toString())
+            searchImage(binding.etSearch.text.toString())
         }
+
+        networkBroadcastReceiver = NetworkBroadcastReceiver(requireContext()){
+            if(it){
+                searchImage(binding.etSearch.text.toString())
+            }else{
+               Toast.makeText(requireContext(),"Internet Unavailable",Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        requireContext().registerReceiver(networkBroadcastReceiver,  IntentFilter(
+            ConnectivityManager.CONNECTIVITY_ACTION))
+
+    }
+
+    private fun searchImage(keyword: String) {
+        viewModel.searchImage(keyword)
     }
 
     private fun setObservers() {
@@ -110,7 +138,7 @@ class GalleryFragment : Fragment() {
             )
         }
 
-        binding.rvGallery.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        /*binding.rvGallery.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (!recyclerView.canScrollHorizontally(1)
@@ -119,7 +147,12 @@ class GalleryFragment : Fragment() {
                     // viewModel.searchImage(searchKey);
                 }
             }
-        })
+        })*/
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        requireContext().unregisterReceiver(networkBroadcastReceiver)
     }
 
 
